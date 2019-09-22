@@ -44,4 +44,4 @@ placemark.balloon.open();
         {"type": "Feature", "id": 12, "geometry": {"type": "Point", "coordinates": [55.78085, 37.75021]}, "properties": {"balloonContent": "Содержимое балуна", "clusterCaption": "Еще одна метка", "hintContent": "Мой балун не откроется"}, "options": {"iconColor": "#ff0000", "openBalloonOnClick": false}},
         {"type": "Feature", "id": 13, "geometry": {"type": "Point", "coordinates": [55.810906, 37.654142]}, "properties": {"balloonContent": "Содержимое балуна", "clusterCaption": "Еще одна метка", "hintContent": "Текст подсказки"}, "options": {}}
     ]
-    ```
+```

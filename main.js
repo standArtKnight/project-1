@@ -15,7 +15,7 @@ function init() {
 
     mainBalloonLayout = ymaps.templateLayoutFactory.createClass(
         '<div class="my-balloon">' +
-        '<div id="header">{{name}}<button id="btn-close">Закрыть</button></div>' +
+        '<div id="header">{{address}}<button id="btn-close">Закрыть</button></div>' +
         '<div id="comments">Коменты</div>' +
         '<h2 class="form-name">Ваш отзыв</h2>' +
         '<input type="text" id="user-name" placeholder="Ваше имя">' +
@@ -124,9 +124,9 @@ function init() {
 
             myMap.balloon.open(coords, {
                 name: 'HELLO',
-                coords: coords
+                coords: coords,
+                address: myAddress
             }, {
-                address: myAddress,
                 layout: mainBalloonLayout
             });
         });
