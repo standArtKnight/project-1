@@ -15,9 +15,34 @@ function init() {
     var clustererContentLayout = ymaps.templateLayoutFactory.createClass(
         // Флаг "raw" означает, что данные вставляют "как есть" без экранирования html.
         '<h2 class="clusterer_header"><b>{{ properties.place }}</b></h2>' +
-        '<div class="clusterer_body"><a href="#">{{ properties.address }}</a><br><p>{{ properties.comment }}</p></div>' +
-        '<div class="clusterer_footer">{{ properties.date }}</div>'
-    );
+        '<div class="clusterer_body"><a href="/" id="adress-link">{{ properties.address }}</a><br><p>{{ properties.comment }}</p></div>' +
+        '<div class="clusterer_footer">{{ properties.date }}</div>', {
+            build: function () {
+                clustererContentLayout.superclass.build.call(this);
+                const link = document.getElementById("adress-link");
+                link.addEventListener('click', this.openMarkBallon);
+            },
+            clear: function () {
+                const link = document.getElementById("adress-link");
+                link.removeEventListener('click', this.openMarkBallon);
+                clustererContentLayout.superclass.clear.call(this);
+            },
+            openMarkBallon: function (e) {
+                e.preventDefault();
+                console.log(e.target.textContent);
+                let commentsHtml = '';
+                const marksArray = objectManager.objects.getAll();
+                let coords = myMap.getCenter();
+                marksArray
+                    .filter(element => element.properties.address == e.target.textContent)
+                    .forEach(element => {
+                        coords = element.geometry.coordinates;
+                        commentsHtml += `<p><b>${element.properties.name}</b> ${element.properties.place} ${element.properties.date}<br>${element.properties.comment}</p>`;
+                    });
+
+                createMainBallon(coords, commentsHtml);
+            }
+        });
 
     objectManager = new ymaps.ObjectManager({
         // Чтобы метки начали кластеризоваться, выставляем опцию.
@@ -37,6 +62,10 @@ function init() {
         // clusterBalloonContentLayoutHeight: 130
     });
 
+    objectManager.clusters.options.set({
+        preset: 'islands#redClusterIcons',
+    });
+
     myMap.geoObjects.add(objectManager);
 
 
@@ -49,7 +78,26 @@ function init() {
         '<input type="text" id="place" placeholder="Укажите место">' +
         '<textarea name="comment" id="user-comment" cols="20" rows="2"></textarea>' +
         '<div class="btn-container"><button id="btn-add">Добавить</button></div>' +
-        '</div>'
+        '</div>', {
+            // Определяем метод getShape, который
+            // будет возвращать размеры макета хинта.
+            // Это необходимо для того, чтобы хинт автоматически
+            // сдвигал позицию при выходе за пределы карты.
+            getShape: function () {
+                var el = this.getElement(),
+                    result = null;
+                if (el) {
+                    var firstChild = el.firstChild;
+                    result = new ymaps.shape.Rectangle(
+                        new ymaps.geometry.pixel.Rectangle([
+                            [0, 0],
+                            [firstChild.offsetWidth, firstChild.offsetHeight]
+                        ])
+                    );
+                }
+                return result;
+            }
+        }
     );
 
     myMap.events.add('click', function (e) {
@@ -107,26 +155,32 @@ function init() {
         }
     });
 
-    objectManager.objects.events.add('click', (e) => {
-        var objectId = e.get('objectId');
-        var mark = objectManager.objects.getById(objectId);
-        var commentsHtml = '';
-        var marksArray = objectManager.objects.getAll();
+    objectManager.objects.events.add('click', openMarkBallon);
 
-        marksArray
-            .filter(element => element.geometry.coordinates == mark.geometry.coordinates)
-            .forEach(element => {
-                commentsHtml += `<p><b>${element.properties.name}</b> ${element.properties.place} ${element.properties.date}<br>${element.properties.comment}</p>`;
-        });
+    function openMarkBallon(e) {
+        const objectId = e.get('objectId');
+        const mark = objectManager.objects.getById(objectId);
+        let commentsHtml = `<p><b>${mark.properties.name}</b> ${mark.properties.place} ${mark.properties.date}<br>${mark.properties.comment}</p>`;
 
         if (myMap.balloon.isOpen()) {
             myMap.balloon.close();
         }
 
         createMainBallon(mark.geometry.coordinates, commentsHtml);
-    });
+    }
 
-    
+    // objectManager.clusters.balloon.events.add('open', (e) => {
+    //     let clusterId = e.get('objectId');
+    //     let commentsHtml = '';
+    //     let cluster = objectManager.clusters.getById(clusterId);
+    //     // cluster.features
+    //     //     .filter(element => element.geometry.coordinates == mark.geometry.coordinates)
+    //     //     .forEach(element => {
+    //     //         commentsHtml += `<p><b>${element.properties.name}</b> ${element.properties.place} ${element.properties.date}<br>${element.properties.comment}</p>`;
+    //     //     });
+    //     console.log('ОКРЫТО');
+    //     console.log(document.getElementById('adress-link'));
+    // })
 
     function createMainBallon(coords, commentsHtml) {
         commentsHtml = commentsHtml || '';
@@ -139,7 +193,10 @@ function init() {
                 address: firstGeoObject.getAddressLine(),
 
             }, {
-                layout: mainBalloonLayout
+                layout: mainBalloonLayout,
+                autoPan: true,
+                autoPanCheckZoomRange: false,
+                autoPanDuration: 500
             });
         });
     }
