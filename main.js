@@ -1,11 +1,9 @@
 ymaps.ready(init);
-var myMap, coords, BalloonLayout;
-var placemarksCollection, objectManager;
 
 var placemarkID = 0;
 
 function init() {
-    myMap = new ymaps.Map('map', {
+    var myMap = new ymaps.Map('map', {
         center: [54.71, 55.96],
         zoom: 12,
         controls: ['zoomControl']
@@ -29,7 +27,6 @@ function init() {
             },
             openMarkBallon: function (e) {
                 e.preventDefault();
-                console.log(e.target.textContent);
                 let commentsHtml = '';
                 const marksArray = objectManager.objects.getAll();
                 let coords = myMap.getCenter();
@@ -44,7 +41,7 @@ function init() {
             }
         });
 
-    objectManager = new ymaps.ObjectManager({
+    var objectManager = new ymaps.ObjectManager({
         // Чтобы метки начали кластеризоваться, выставляем опцию.
         clusterize: true,
         // ObjectManager принимает те же опции, что и кластеризатор.
@@ -69,7 +66,7 @@ function init() {
     myMap.geoObjects.add(objectManager);
 
 
-    mainBalloonLayout = ymaps.templateLayoutFactory.createClass(
+    var mainBalloonLayout = ymaps.templateLayoutFactory.createClass(
         '<div class="my-balloon">' +
         '<div id="header">{{address}}<button id="btn-close">Закрыть</button></div>' +
         '<div id="comments">{{comments | raw}}</div>' +
@@ -101,7 +98,7 @@ function init() {
     );
 
     myMap.events.add('click', function (e) {
-        coords = e.get('coords');
+        var coords = e.get('coords');
         if (!myMap.balloon.isOpen()) {
             createMainBallon(coords);
         } else {
@@ -169,19 +166,6 @@ function init() {
         createMainBallon(mark.geometry.coordinates, commentsHtml);
     }
 
-    // objectManager.clusters.balloon.events.add('open', (e) => {
-    //     let clusterId = e.get('objectId');
-    //     let commentsHtml = '';
-    //     let cluster = objectManager.clusters.getById(clusterId);
-    //     // cluster.features
-    //     //     .filter(element => element.geometry.coordinates == mark.geometry.coordinates)
-    //     //     .forEach(element => {
-    //     //         commentsHtml += `<p><b>${element.properties.name}</b> ${element.properties.place} ${element.properties.date}<br>${element.properties.comment}</p>`;
-    //     //     });
-    //     console.log('ОКРЫТО');
-    //     console.log(document.getElementById('adress-link'));
-    // })
-
     function createMainBallon(coords, commentsHtml) {
         commentsHtml = commentsHtml || '';
         ymaps.geocode(coords).then(function (res) {
@@ -193,10 +177,7 @@ function init() {
                 address: firstGeoObject.getAddressLine(),
 
             }, {
-                layout: mainBalloonLayout,
-                autoPan: true,
-                autoPanCheckZoomRange: false,
-                autoPanDuration: 500
+                layout: mainBalloonLayout
             });
         });
     }
